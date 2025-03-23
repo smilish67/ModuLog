@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모두록 : 언어를 초월한 AI 회의 파트너</title>
+    <link rel="icon" href="/public/logo.png">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+</head>
+<body>
+    <!-- 사이드바 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>회의 기록</h2>
+        </div>
+        <div class="meeting-list">
+            <!-- 회의 목록이 여기에 동적으로 추가됩니다 -->
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="main-content">
+        <!-- 로고 섹션 -->
+        <div class="logo-section">
+            <div class="logo-container">
+                <img src="/public/logo.png" alt="로고" class="logo">
+            </div>
+            <div class="upload-container" id="dropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h2>WAV 파일을 여기에 드래그하거나 클릭하여 업로드하세요</h2>
+                <input type="file" id="fileInput" accept=".wav" hidden>
+            </div>
+        </div>
+
+        <!-- 탭 컨테이너 -->
+        <div class="tabs-container" id="tabsContainer">
+            <!-- 탭 헤더 -->
+            <div class="tabs-header" id="tabsHeader">
+                <!-- 탭 버튼들이 여기에 동적으로 추가됩니다 -->
+            </div>
+            
+            <!-- 탭 컨텐츠 영역 -->
+            <div class="tabs-content" id="tabsContent">
+                <!-- 탭 컨텐츠가 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 채팅 버튼 -->
+    <div class="chat-button" id="chatButton">
+        <i class="fas fa-comments"></i>
+    </div>
+
+    <!-- 채팅 창 -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h3>채팅</h3>
+            <button class="close-chat" id="closeChat">×</button>
+        </div>
+        <div class="chat-messages">
+            <!-- 채팅 메시지가 여기에 추가됩니다 -->
+        </div>
+        <div class="suggested-messages">
+            <!-- 추천 대사가 여기에 추가됩니다 -->
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="메시지를 입력하세요...">
+            <button><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script src="public/js/main.js"></script>
+</body>
+</html> 

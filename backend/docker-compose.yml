@@ -1,0 +1,30 @@
+services:
+  modu-backend:
+    image: node:20
+    container_name: modu-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    working_dir: /app
+    command: sh -c "npm install && npm start"
+
+  modu-nosql:
+    image: mongo:latest
+    container_name: modu-nosql
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    command: mongod --auth
+    depends_on:
+      - modu-backend
+
+
+
+
+
