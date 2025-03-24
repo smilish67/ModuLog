@@ -1,0 +1,183 @@
+/* 모달 스타일 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 2px 10px var(--base-color-shadow-light);
+}
+
+.modal-content h2 {
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.strategy-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 0 2rem;
+}
+
+.strategy-option {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.25rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    position: relative;
+    overflow: hidden;
+}
+
+.strategy-option:hover {
+    border-color: var(--base-color);
+    background-color: var(--base-color-lighter);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--base-color-shadow-light);
+}
+
+.strategy-option input[type="radio"] {
+    display: none;
+}
+
+.strategy-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-left: 1rem;
+    flex: 1;
+}
+
+.strategy-title {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.strategy-description {
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+    line-height: 1.5;
+    transition: all 0.3s ease;
+}
+
+/* 선택된 옵션의 스타일 */
+.strategy-option input[type="radio"]:checked + .strategy-content .strategy-title {
+    color: var(--base-color);
+}
+
+.strategy-option input[type="radio"]:checked + .strategy-content .strategy-description {
+    color: var(--base-color);
+}
+
+/* 선택된 옵션의 카드 스타일 */
+.strategy-option input[type="radio"]:checked ~ .strategy-option {
+    border-color: var(--base-color);
+    background-color: var(--base-color-lighter);
+    box-shadow: 0 4px 12px var(--base-color-shadow);
+}
+
+/* 선택된 옵션의 왼쪽 바 */
+.strategy-option input[type="radio"]:checked ~ .strategy-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: var(--base-color);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.strategy-option:hover .strategy-title {
+    color: var(--base-color);
+}
+
+.strategy-option:hover .strategy-description {
+    color: var(--base-color);
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.modal-buttons button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#cancelUpload {
+    background-color: #f8f9fa;
+    color: var(--text-color);
+}
+
+#confirmUpload {
+    background-color: var(--base-color);
+    color: white;
+}
+
+#cancelUpload:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+}
+
+#confirmUpload:hover {
+    background-color: var(--base-color-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--base-color-shadow);
+} 

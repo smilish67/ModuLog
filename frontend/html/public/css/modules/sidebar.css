@@ -1,0 +1,146 @@
+/* 사이드바 스타일 */
+.sidebar {
+    width: 300px;
+    background: var(--sidebar-bg);
+    color: var(--text-color);
+    padding: 20px;
+    padding-right: 28px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    box-shadow: 2px 0 10px var(--base-color-shadow-light);
+    z-index: 2;
+    scrollbar-width: thin;
+    scrollbar-color: var(--base-color-light) var(--base-color-shadow-light);
+}
+
+/* Webkit 스크롤바 스타일 */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: var(--base-color-shadow-light);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--base-color-light);
+    border-radius: 4px;
+    min-height: 40px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--base-color);
+}
+
+.sidebar-header {
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--base-color-light);
+}
+
+.sidebar-header h2 {
+    color: var(--sidebar-title);
+    font-size: 1.5em;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.sidebar-header h2:hover {
+    color: var(--base-color-dark);
+}
+
+.meeting-list {
+    margin-top: 20px;
+}
+
+.time-section {
+    margin-bottom: 15px;
+    background: var(--sidebar-block);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.time-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background-color: var(--sidebar-block);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.time-section-header:hover {
+    background-color: rgba(138, 79, 255, 0.05);
+}
+
+.time-section-header span {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95em;
+    letter-spacing: -0.3px;
+}
+
+.time-section-header i {
+    color: var(--base-color);
+    font-size: 0.9em;
+    transition: transform 0.2s ease;
+}
+
+.time-section.active .time-section-header i {
+    transform: rotate(180deg);
+}
+
+.time-section-content {
+    display: none;
+    padding: 8px;
+    background-color: var(--sidebar-block);
+}
+
+.time-section-content.show {
+    display: block;
+}
+
+.meeting-item {
+    padding: 12px 15px;
+    background-color: var(--sidebar-content);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.meeting-item:last-child {
+    margin-bottom: 0;
+}
+
+.meeting-item:hover {
+    border-color: var(--base-color-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--base-color-shadow-light);
+}
+
+.meeting-item div:first-child {
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meeting-item div:last-child {
+    color: #8d939c;
+    font-size: 0.85em;
+    font-weight: 400;
+} 

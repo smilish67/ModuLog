@@ -13,7 +13,7 @@
     <!-- 사이드바 -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2>회의 기록</h2>
+            <h2>회의 기록 📑</h2>
         </div>
         <div class="meeting-list">
             <!-- 회의 목록이 여기에 동적으로 추가됩니다 -->
@@ -29,18 +29,47 @@
             </div>
             <div class="upload-container" id="dropZone">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <h2>WAV 파일을 여기에 드래그하거나 클릭하여 업로드하세요</h2>
-                <input type="file" id="fileInput" accept=".wav" hidden>
+                <h2>오디오 파일을 여기에 드래그하거나 클릭하여 업로드하세요</h2>
+                <input type="file" id="fileInput" accept=".wav, .mp3, .mpeg, .ogg, .webm" hidden>
+            </div>
+        </div>
+
+        <!-- 업로드 설정 모달 -->
+        <div class="modal" id="uploadModal">
+            <div class="modal-content">
+                <h2>업로드 설정</h2>
+                <div class="form-group">
+                    <label for="meetingTitle">회의 제목</label>
+                    <input type="text" id="meetingTitle" placeholder="회의 제목을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label>요약 전략</label>
+                    <div class="strategy-options">
+                        <label class="strategy-option">
+                            <input type="radio" name="summaryStrategy" value="content" checked>
+                            <div class="strategy-content">
+                                <span class="strategy-title">내용 요약 위주</span>
+                                <span class="strategy-description">회의의 주제와 핵심 내용을 전반적으로 정리하여 전체적인 맥락을 파악하기 쉽게 요약합니다.</span>
+                            </div>
+                        </label>
+                        <label class="strategy-option">
+                            <input type="radio" name="summaryStrategy" value="speaker">
+                            <div class="strategy-content">
+                                <span class="strategy-title">발언 요약 중요</span>
+                                <span class="strategy-description">각 화자의 의견과 논의 내용을 시간 순서대로 정리하여 회의 진행 과정을 상세히 파악할 수 있습니다.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button id="cancelUpload">취소</button>
+                    <button id="confirmUpload">업로드</button>
+                </div>
             </div>
         </div>
 
         <!-- 탭 컨테이너 -->
         <div class="tabs-container" id="tabsContainer">
-            <!-- 탭 헤더 -->
-            <div class="tabs-header" id="tabsHeader">
-                <!-- 탭 버튼들이 여기에 동적으로 추가됩니다 -->
-            </div>
-            
             <!-- 탭 컨텐츠 영역 -->
             <div class="tabs-content" id="tabsContent">
                 <!-- 탭 컨텐츠가 여기에 동적으로 추가됩니다 -->
@@ -71,6 +100,6 @@
         </div>
     </div>
 
-    <script src="public/js/main.js"></script>
+    <script type="module" src="public/js/main.js"></script>
 </body>
 </html> 

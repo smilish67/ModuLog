@@ -1,0 +1,131 @@
+/* 회의 전문 스타일 */
+.transcript-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+.transcript-message {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.transcript-message:hover {
+    background: var(--base-color-shadow-light);
+}
+
+.speaker {
+    font-weight: 600;
+    color: var(--base-color);
+    font-size: 0.95em;
+    letter-spacing: -0.3px;
+}
+
+.message-bubble {
+    background: white;
+    padding: 14px 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px var(--base-color-shadow-light);
+    position: relative;
+    max-width: 80%;
+    line-height: 1.6;
+}
+
+.message-bubble::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid white;
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: var(--text-color-lighter);
+    margin-left: 4px;
+}
+
+/* 전문 섹션 스타일 */
+.full-text-section {
+    padding: 30px;
+    background: var(--base-color-lighter);
+    border-radius: 10px;
+    width: 100%;
+}
+
+.full-text-content {
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    line-height: 1.8;
+    max-height: 1000px;
+    overflow-y: auto;
+    font-size: 1.05em;
+    width: 100%;
+    color: var(--text-color);
+    box-shadow: 0 2px 12px var(--base-color-shadow-light);
+}
+
+/* 요약 섹션 스타일 */
+.summary-section {
+    padding: 30px;
+    background: var(--base-color-lighter);
+    border-radius: 10px;
+    width: 100%;
+}
+
+.summary-tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: center;  /* 탭 버튼 중앙 정렬 */
+}
+
+.summary-tab-button {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid var(--base-color-light);
+    border-radius: 25px;
+    color: var(--base-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    min-width: 140px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.summary-tab-button:hover {
+    background: var(--base-color-lighter);
+    border-color: var(--base-color);
+}
+
+.summary-tab-button.active {
+    background: var(--base-color-gradient);
+    color: var(--text-on-primary);
+    border: none;
+    box-shadow: 0 4px 12px var(--base-color-shadow);
+}
+
+.summary-content {
+    display: none;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    line-height: 1.8;
+    font-size: 1.05em;
+    box-shadow: 0 2px 12px var(--base-color-shadow-light);
+}
+
+.summary-content.active {
+    display: block;
+} 

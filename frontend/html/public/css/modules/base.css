@@ -1,0 +1,52 @@
+:root {
+    /* 메인 컬러: 로고와 어울리는 보라색 계열 */
+    --base-color: #8A4FFF;
+    --base-color-light: #B894FF;
+    --base-color-lighter: #F8F6FF;
+    --base-color-dark: #6B3ACC;
+    --base-color-darker: #5728A3;
+    
+    /* 그라데이션 & 그림자 */
+    --base-color-gradient: linear-gradient(135deg, var(--base-color) 0%, var(--base-color-dark) 100%);
+    --base-color-shadow: rgba(138, 79, 255, 0.15);
+    --base-color-shadow-light: rgba(138, 79, 255, 0.08);
+    --base-color-shadow-dark: rgba(138, 79, 255, 0.25);
+    
+    /* 텍스트 컬러 */
+    --text-color: #2D2B3A;
+    --text-color-light: #6E6D7A;
+    --text-color-lighter: #9795A4;
+    --text-on-primary: #FFFFFF;
+
+    /* 사이드바 컬러 */
+    --sidebar-bg: #ede6f7;
+    --sidebar-block: #f2f2f2;
+    --sidebar-content: #fcfcfc;
+    --sidebar-title: var(--base-color);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+    background-color: var(--base-color-lighter);
+    display: flex;
+    min-height: 100vh;
+    color: var(--text-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 공통 스타일 */
+.hidden {
+    display: none;
+}
+
+.active {
+    display: block;
+} 
