@@ -64,7 +64,7 @@ export class TranscriptManager {
             messageEl.innerHTML = `
                 <div class="speaker">${item.speaker}</div>
                 <div class="message-bubble">${item.text}</div>
-                <div class="timestamp">${this.formatTime(item.start)}</div>
+                <div class="timestamp">${this.formatTime(item.start)}~${this.formatTime(item.end)}</div>
             `;
 
             if (audioPlayer) {
@@ -103,47 +103,45 @@ export class TranscriptManager {
     updateTranscriptHighlight(currentTime) {
         if (!this.messageElements || this.messageElements.length === 0) return;
         
-        let activeFound = false;
+        // 이전 active 메시지의 active 클래스 제거
+        this.messageElements.forEach(el => el.classList.remove('active'));
         
-        this.messageElements.forEach(el => {
+        // currentTime보다 start가 큰 첫 번째 메시지 찾기
+        const nextMessage = this.messageElements.find(el => {
             const start = parseFloat(el.dataset.start);
-            const end = parseFloat(el.dataset.end);
-            
-            if (currentTime >= start && currentTime <= end) {
-                if (!el.classList.contains('active')) {
-                    el.classList.add('active');
-                    
-                    const container = el.closest('.transcript-container');
-                    if (container) {
-                        const elTop = el.offsetTop;
-                        const containerHeight = container.clientHeight;
-                        const elHeight = el.clientHeight;
-                        
-                        container.scrollTop = elTop - (containerHeight / 2) + (elHeight / 2);
-                    }
-                }
-                activeFound = true;
-            } else {
-                el.classList.remove('active');
-            }
+            return start > currentTime;
         });
         
-        if (!activeFound && this.messageElements.length > 0) {
-            let closestEl = this.messageElements[0];
-            let minDistance = Infinity;
-            
-            this.messageElements.forEach(el => {
-                const start = parseFloat(el.dataset.start);
-                const distance = Math.abs(start - currentTime);
+        if (nextMessage) {
+            // 이전 메시지가 있다면 그것을 active로 설정
+            const prevMessage = nextMessage.previousElementSibling;
+            if (prevMessage) {
+                prevMessage.classList.add('active');
                 
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestEl = el;
+                // 스크롤 위치 조정
+                const container = prevMessage.closest('.transcript-container');
+                if (container) {
+                    const elTop = prevMessage.offsetTop;
+                    const containerHeight = container.clientHeight;
+                    const elHeight = prevMessage.clientHeight;
+                    
+                    container.scrollTop = elTop - (containerHeight / 2) + (elHeight / 2);
                 }
-            });
+            }
+        } else {
+            // 마지막 메시지가 active
+            const lastMessage = this.messageElements[this.messageElements.length - 1];
+            lastMessage.classList.add('active');
             
-            this.messageElements.forEach(el => el.classList.remove('nearest'));
-            closestEl.classList.add('nearest');
+            // 스크롤 위치 조정
+            const container = lastMessage.closest('.transcript-container');
+            if (container) {
+                const elTop = lastMessage.offsetTop;
+                const containerHeight = container.clientHeight;
+                const elHeight = lastMessage.clientHeight;
+                
+                container.scrollTop = elTop - (containerHeight / 2) + (elHeight / 2);
+            }
         }
     }
 

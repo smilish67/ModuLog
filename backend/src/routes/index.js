@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const meetingController = require('../controllers/meeting-controller');
 const meetingRoutes = require('./meeting-routes');
+const chatRoutes = require('./chatRoutes');
 
 // multer 설정
 const storage = multer.diskStorage({
@@ -38,10 +39,14 @@ router.get('/', (req, res) => {
     res.json({ message: 'Modu API 서버가 정상적으로 실행 중입니다.' });
 });
 router.post('/upload', upload.single('file'), meetingController.uploadMeeting);
+router.post('/upload/youtube', meetingController.uploadYoutubeMeeting);
 
 
 // 회의 관련 라우트를 /meetings 경로에 마운트
 router.use('/meetings', meetingRoutes);
+
+// 채팅 관련 라우트를 /chat 경로에 마운트
+router.use('/chat', chatRoutes);
 
 // 기존 직접 정의된 회의 관련 라우트들은 제거
 // router.get('/meetings', meetingController.getMeetings); 등 제거

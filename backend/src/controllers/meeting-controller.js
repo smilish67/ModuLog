@@ -237,7 +237,102 @@ class MeetingController {
       res.status(500).json({ error: '회의 삭제 중 오류가 발생했습니다.' });
     }
   }
-  // 나머지 컨트롤러 메서드들...
-  // 다른 라우터 핸들러들도 여기에 추가
+
+
+  async uploadYoutubeMeeting(req, res) {
+    try {
+      const { youtubeUrl, meetingTitle, summaryStrategy } = req.body;
+      
+      // 유튜브 URL 유효성 검사
+      if (!youtubeUrl) {
+        return res.status(400).json({ error: '유튜브 URL이 필요합니다.' });
+      }
+
+      // 유튜브 오디오 다운로드
+      const audioPath = await meetingService.downloadYoutubeAudio(youtubeUrl);
+
+      // 파일 업로드 처리
+      const meeting = new Meeting({
+        title: meetingTitle,
+        audioFile: {
+          filename: audioPath.split('/').pop(),
+          originalname: audioPath.split('/').pop(),
+          path: audioPath,
+          status: 'completed'
+        },
+        summaryStrategy,
+        transcript: { status: 'pending' },
+        summary: { status: 'not_started' }  
+      });
+
+      await meeting.save();
+
+      // 비동기 처리는 서비스 레이어에 위임
+      meetingService.processMeeting(meeting._id);
+
+      // 오디오 파일 URL 생성
+      const audioFileUrl = `/uploads/${meeting.audioFile.filename}?t=${Date.now()}`;
+      
+      res.json({
+        message: '유튜브 영상이 성공적으로 업로드되었습니다.',
+        meetingId: meeting._id, 
+        audioFile: meeting.audioFile,
+        audioFileUrl: audioFileUrl,
+        transcript: meeting.transcript,
+        summary: meeting.summary
+      });
+    } catch (error) {
+      console.error('유튜브 영상 업로드 에러:', error);
+      res.status(500).json({ error: '유튜브 영상 업로드 중 오류가 발생했습니다.' });
+    }
+  }
+
+  /**
+   * 회의 데이터를 JSON 파일로 내보내기
+   */
+  async exportMeetingToJson(req, res) {
+    try {
+      const meetingId = req.params.meetingId;
+      const meeting = await Meeting.findById(meetingId);
+      
+      if (!meeting) {
+        return res.status(404).json({ error: '회의를 찾을 수 없습니다.' });
+      }
+
+      // 회의 데이터를 JSON 형식으로 변환
+      const meetingData = meeting.toObject();
+      
+      // 파일명 생성 (회의 제목과 날짜 포함)
+      const fileName = `${meeting.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.json`;
+      
+      // 파일 저장 경로 설정
+      const exportDir = path.join(__dirname, '../../exports');
+      if (!fs.existsSync(exportDir)) {
+        fs.mkdirSync(exportDir, { recursive: true });
+      }
+      
+      const filePath = path.join(exportDir, fileName);
+      
+      // JSON 파일로 저장
+      fs.writeFileSync(filePath, JSON.stringify(meetingData, null, 2), 'utf8');
+      
+      // 파일 다운로드를 위한 응답
+      res.download(filePath, fileName, (err) => {
+        if (err) {
+          console.error('파일 다운로드 에러:', err);
+        }
+        // 다운로드 완료 후 임시 파일 삭제
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error('임시 파일 삭제 에러:', unlinkErr);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('JSON 내보내기 에러:', error);
+      res.status(500).json({ error: 'JSON 파일 내보내기 중 오류가 발생했습니다.' });
+    }
+  }
 }
+
 module.exports = new MeetingController(); 

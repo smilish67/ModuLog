@@ -12,8 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUploadManager = new FileUploadManager(tabsManager);
     const meetingsManager = new MeetingsManager(summaryManager);
 
+    // 회의 선택 이벤트 리스너 추가
+    document.addEventListener('meetingSelected', (e) => {
+        const meetingId = e.detail._id || e.detail.id;
+        chatManager.setCurrentMeetingId(meetingId);
+    });
+
     // 회의 기록 헤더 클릭 이벤트 처리
     document.querySelector('.sidebar-header h2').addEventListener('click', () => {
         tabsManager.closeTab();
+        chatManager.setCurrentMeetingId(null); // 회의 선택 해제 시 채팅 ID도 초기화
     });
 });

@@ -4,6 +4,8 @@ const path = require('path');
 const FormData = require('form-data');
 const axios = require('axios');
 // STT, 요약 등에 필요한 다른 모듈들 import
+const { execSync } = require("child_process");
+const { v4: uuidv4 } = require("uuid");
 
 /**
  * 회의 처리를 위한 비즈니스 로직 서비스
@@ -448,7 +450,42 @@ class MeetingService {
     }
   }
 
-  
+  async downloadYoutubeAudio(youtubeUrl) {
+    try {
+      // 유튜브 URL 유효성 검사
+      if (!youtubeUrl) {
+        throw new Error('유튜브 URL이 필요합니다.');
+      }
+      
+      // 유튜브 오디오 다운로드
+      const audioPath = await downloadYoutubeAudio(youtubeUrl);
+      return audioPath;
+    } catch (error) {
+      console.error('유튜브 오디오 다운로드 오류:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new MeetingService();
+
+function downloadYoutubeAudio(youtubeUrl, outputDir = "uploads") {
+  if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  const baseName = uuidv4();
+  const outputPath = path.join(outputDir, `${baseName}.%(ext)s`);
+  const finalPath = path.join(outputDir, `${baseName}.wav`);
+
+  const command = `yt-dlp --extract-audio --audio-format wav -o "${outputPath}" "${youtubeUrl}"`;
+
+  console.log(`[YT-DLP] Downloading audio from: ${youtubeUrl}`);
+  execSync(command, { stdio: "inherit" });
+
+  if (!fs.existsSync(finalPath)) {
+      throw new Error("다운로드 실패: .wav 파일이 존재하지 않습니다.");
+  }
+
+  return finalPath;
+}

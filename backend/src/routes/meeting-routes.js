@@ -24,4 +24,7 @@ router.put('/:meetingId/summary', meetingController.updateSummary);
 // 회의 삭제
 router.delete('/:meetingId', meetingController.deleteMeeting);
 
+// 회의 데이터 JSON 내보내기
+router.get('/:meetingId/export', meetingController.exportMeetingToJson);
+
 module.exports = router; 
