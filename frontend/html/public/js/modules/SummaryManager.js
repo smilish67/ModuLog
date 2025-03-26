@@ -2,6 +2,7 @@ export class SummaryManager {
     constructor() {
         this.pollingInterval = null;
         this.pollingDelay = 5000;
+        this.pollingManager = null;
     }
 
     setPollingManager(pollingManager) {
@@ -153,6 +154,12 @@ export class SummaryManager {
     }
 
     createSummarySection(meeting) {
+        console.log('요약 섹션 생성:', {
+            transcriptStatus: meeting.transcript?.status,
+            summaryStatus: meeting.summary?.status,
+            meetingId: meeting._id || meeting.id
+        });
+
         if (meeting.transcript?.status !== 'completed') {
             return `
                 <h2>회의 요약</h2>
@@ -221,9 +228,5 @@ export class SummaryManager {
             `;
         }
         return '';
-    }
-
-    setupEventListeners(meetingId, meeting) {
-        // 이벤트 리스너 설정은 TabsManager에서 처리
     }
 } 

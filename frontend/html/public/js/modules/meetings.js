@@ -291,7 +291,8 @@ export class MeetingsManager {
                     };
                     this.renderMeetings();
                 }
-            }
+            },
+            this.summaryManager
         );
 
         pollingManager.startPolling(meetingId);

@@ -16,8 +16,11 @@ export class TabsManager {
         
         this.summaryManager = new SummaryManager();
         this.transcriptManager = new TranscriptManager();
-        this.pollingManager = new PollingManager(this.handleMeetingStatusUpdate.bind(this));
+        this.pollingManager = new PollingManager(this.handleMeetingStatusUpdate.bind(this), this.summaryManager);
         this.modalManager = new ModalManager();
+
+        // SummaryManager에 pollingManager 설정
+        this.summaryManager.setPollingManager(this.pollingManager);
 
         this.initializeEventListeners();
     }
@@ -97,6 +100,12 @@ export class TabsManager {
             if (currentSummaryStatus !== meeting.summary?.status) {
                 summarySection.innerHTML = this.summaryManager.createSummarySection(meeting);
                 summarySection.dataset.summaryStatus = meeting.summary?.status;
+                
+                // 요약 섹션 업데이트 후 이벤트 리스너 다시 설정
+                if (meeting.summary?.status === 'completed') {
+                    this.summaryManager.setupSummaryTabs(tabContent);
+                }
+                this.summaryManager.setupEventListeners(meetingId, meeting);
             }
         }
 
@@ -266,33 +275,8 @@ export class TabsManager {
                 this.summaryManager.setupSummaryTabs(tabContent);
             }
 
-            // 화자 설정 버튼 이벤트 리스너
-            const setSpeakersButton = document.getElementById(`set-speakers-btn-${meetingId}`);
-            if (setSpeakersButton) {
-                setSpeakersButton.addEventListener('click', () => {
-                    this.summaryManager.setSpeakerNames(meeting, meetingId);
-                });
-            }
-
-            // 요약 시작 버튼 이벤트 리스너
-            const startSummaryButton = document.getElementById(`start-summary-btn-${meetingId}`);
-            if (startSummaryButton) {
-                startSummaryButton.addEventListener('click', () => {
-                    this.summaryManager.startSummary(meetingId, () => {
-                        this.pollingManager.startPolling(meetingId);
-                    });
-                });
-            }
-
-            // 다시 시도 버튼 이벤트 리스너
-            const retryButton = document.getElementById(`retry-summary-btn-${meetingId}`);
-            if (retryButton) {
-                retryButton.addEventListener('click', () => {
-                    this.summaryManager.startSummary(meetingId, () => {
-                        this.pollingManager.startPolling(meetingId);
-                    });
-                });
-            }
+            // SummaryManager의 이벤트 리스너 설정
+            this.summaryManager.setupEventListeners(meetingId, meeting);
         }
 
         // 트랜스크립트 설정
