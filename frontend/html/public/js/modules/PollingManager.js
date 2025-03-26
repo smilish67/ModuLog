@@ -5,6 +5,7 @@ export class PollingManager {
         this.onStatusUpdate = onStatusUpdate;
         this.summaryManager = summaryManager;
         this.processedTranscripts = new Set(); // 이미 처리된 transcription을 추적
+        this.currentMeetingId = null; // 현재 폴링 중인 meeting ID 추적
     }
 
     startPolling(meetingId) {
@@ -12,6 +13,7 @@ export class PollingManager {
             return;
         }
         
+        this.currentMeetingId = meetingId;
         console.log(`회의 상태 폴링 시작: ${meetingId}`);
         
         this.pollingInterval = setInterval(() => {
@@ -19,6 +21,13 @@ export class PollingManager {
         }, this.pollingDelay);
         
         this.pollMeetingStatus(meetingId);
+    }
+
+    restartPolling() {
+        if (this.currentMeetingId) {
+            this.stopPolling();
+            this.startPolling(this.currentMeetingId);
+        }
     }
     
     stopPolling() {

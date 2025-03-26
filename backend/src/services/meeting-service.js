@@ -47,11 +47,11 @@ class MeetingService {
       await meeting.save();
 
       // Docker 환경에서 호스트 머신의 8000 포트로 접근
-      // const diarizationUrl = process.env.NODE_ENV === 'development' 
-      //   ? 'http://host.docker.internal:8000/diarization/'  // Docker 환경에서 호스트 머신 접근
-      //   : 'http://localhost:8000/diarization/';  // 로컬 개발 환경
+      const diarizationUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://host.docker.internal:8000/diarization/'  // Docker 환경에서 호스트 머신 접근
+        : 'http://localhost:8000/diarization/';  // 로컬 개발 환경
       
-      const diarizationUrl = 'http://121.140.74.6:8000/diarization/';
+      // const diarizationUrl = 'http://121.140.74.6:8000/diarization/';
 
       console.log(`Diarization 요청 전송: ${diarizationUrl}`);
       console.log('오디오 파일 경로:', meeting.audioFile.path);
@@ -77,31 +77,15 @@ class MeetingService {
       
       console.log('Diarization 응답 수신:', response.data);
       
-      // 처리 결과 업데이트 - 응답이 이미 JSON 객체이므로 그대로 저장
+      // 처리 결과 업데이트
       meeting.transcript.status = 'completed';
-      meeting.transcript.content = response.data; // JSON 데이터를 그대로 저장
+      meeting.transcript.content = response.data;
 
-      // JSON 데이터에서 화자 이름 추출
+      // segments가 있는 경우 추가 처리
       const segments = response.data.segments || [];
       if (segments.length > 0) {
-        // segments에서 고유한 speaker ID 추출
-        const speakerIds = new Set();
-        segments.forEach(segment => {
-          if (segment.speaker) {
-            speakerIds.add(segment.speaker);
-          }
-        });
-        
-        // 화자 ID별로 기본 이름 설정
-        const speakerNames = {};
-        Array.from(speakerIds).forEach(speakerId => {
-          speakerNames[speakerId] = `화자 ${speakerId.replace('SPEAKER_', '')}`;
-        });
-        
-        console.log('화자 이름:', speakerNames);
-        
-        // 화자 이름 설정
-        await this.setSpeakerNames(meeting._id, speakerNames);
+        // 화자 설정
+        await this.setupSpeakers(meeting._id, segments);
       } else {
         console.log('segments 정보가 없거나 비어 있습니다');
       }
@@ -112,7 +96,38 @@ class MeetingService {
       meeting.transcript.status = 'error';
       meeting.transcript.error = error.message;
       await meeting.save();
-      throw error; // 상위 함수에서 처리하도록 오류 전파
+      throw error;
+    }
+  }
+
+  /**
+   * 화자 설정 및 기본 이름 할당
+   * @param {string} meetingId - 회의 ID
+   * @param {Array} segments - 트랜스크립트 세그먼트 배열
+   */
+  async setupSpeakers(meetingId, segments) {
+    try {
+      // segments에서 고유한 speaker ID 추출
+      const speakerIds = new Set();
+      segments.forEach(segment => {
+        if (segment.speaker) {
+          speakerIds.add(segment.speaker);
+        }
+      });
+      
+      // 화자 ID별로 기본 이름 설정
+      const speakerNames = {};
+      Array.from(speakerIds).forEach(speakerId => {
+        speakerNames[speakerId] = `화자 ${speakerId.replace('SPEAKER_', '')}`;
+      });
+      
+      console.log('화자 이름:', speakerNames);
+      
+      // 화자 이름 설정
+      await this.setSpeakerNames(meetingId, speakerNames);
+    } catch (error) {
+      console.error('화자 설정 중 오류:', error);
+      // 화자 설정 실패는 전체 프로세스를 중단시키지 않음
     }
   }
 
@@ -159,6 +174,7 @@ class MeetingService {
         throw new Error('회의 녹취 변환이 완료되지 않았습니다.');
       }
       
+      
       // 요약 생성 시작
       meeting.summary.status = 'pending';
       await meeting.save();
@@ -192,40 +208,62 @@ class MeetingService {
       // 화자 이름 매핑 적용
       const transcriptData = meeting.transcript.content;
       let processedTranscript = transcriptData;
+      let chunks = [];
 
-      /*
-      transcriptData looks like this:
-      {
-        "speaker": "SPEAKER_00",
-        "start": 6.001697792869271,
-        "end": 8.582342954159593,
-        "duration": 2.580645161290322,
-        "text": " 그리고 그에 어떻게 대처할지"
-      },
-      */
-      
-      // end 시간을 기준으로 5분 단위 청크로 나누기
-      const CHUNK_SIZE = 5 * 60; // 5분을 초 단위로
-      const chunks = [];
-      let currentChunk = [];
-      let currentChunkEndTime = CHUNK_SIZE;
+      if (meeting.summaryStrategy === 'speaker') {
+        // end 시간을 기준으로 5분 단위 청크로 나누기
+        const CHUNK_SIZE = 5 * 60; // 5분을 초 단위로
+        let currentChunk = [];
+        let currentChunkEndTime = CHUNK_SIZE;
 
-      if (transcriptData.segments && Array.isArray(transcriptData.segments)) {
-        transcriptData.segments.forEach(segment => {
-          if (segment.end <= currentChunkEndTime) {
-            currentChunk.push(segment);
-          } else {
-            if (currentChunk.length > 0) {
-              chunks.push(currentChunk);
+        if (transcriptData.segments && Array.isArray(transcriptData.segments)) {
+          transcriptData.segments.forEach(segment => {
+            if (segment.end <= currentChunkEndTime) {
+              currentChunk.push(segment);
+            } else {
+              if (currentChunk.length > 0) {
+                chunks.push(currentChunk);
+              }
+              currentChunk = [segment];
+              currentChunkEndTime = Math.ceil(segment.end / CHUNK_SIZE) * CHUNK_SIZE;
             }
-            currentChunk = [segment];
-            currentChunkEndTime = Math.ceil(segment.end / CHUNK_SIZE) * CHUNK_SIZE;
+          });
+          
+          // 마지막 청크 추가
+          if (currentChunk.length > 0) {
+            chunks.push(currentChunk);
           }
-        });
-        
-        // 마지막 청크 추가
-        if (currentChunk.length > 0) {
-          chunks.push(currentChunk);
+        }
+      } else {
+        // content 모드: 텍스트 길이 기반으로 청크 나누기
+        const CHUNK_SIZE = 8000; // 토큰 제한
+        let currentChunk = [];
+        let currentChunkLength = 0;
+
+        if (transcriptData.segments && Array.isArray(transcriptData.segments)) {
+          transcriptData.segments.forEach(segment => {
+            const segmentText = segment.text || '';
+            const segmentLength = segmentText.length;
+            
+            if (currentChunkLength + segmentLength <= CHUNK_SIZE) {
+              currentChunk.push(segment);
+              currentChunkLength += segmentLength;
+            } else {
+              if (currentChunk.length > 0) {
+                chunks.push(currentChunk);
+              }
+              currentChunk = [segment];
+              currentChunkLength = segmentLength;
+            }
+          });
+          
+          // 마지막 청크 추가
+          if (currentChunk.length > 0) {
+            chunks.push(currentChunk);
+          }
+        } else {
+          console.warn('transcriptData.segments가 없거나 배열이 아닙니다:', transcriptData);
+          throw new Error('올바른 형식의 트랜스크립트 데이터가 아닙니다.');
         }
       }
 
@@ -254,10 +292,15 @@ class MeetingService {
       // 요약 전략에 따라 다른 처리
       const summaryStrategy = meeting.summaryStrategy || 'content';
       console.log(`요약 전략: ${summaryStrategy}, 화자 매핑 적용됨`);
+      let summaryUrl = '';
       
       // segments만 요약 서버로 전송
-      const summaryUrl = 'https://kkrzfnfacjqphtre.tunnel-pt.elice.io/summary';
-      
+      if (summaryStrategy === 'content') {
+        summaryUrl = 'https://kkrzfnfacjqphtre.tunnel-pt.elice.io/summary_content';
+      } else if (summaryStrategy === 'speaker') {
+        summaryUrl = 'https://kkrzfnfacjqphtre.tunnel-pt.elice.io/summary';
+      }
+
       const response = await axios.post(summaryUrl, {
         chunks: processedTranscript,
         strategy: summaryStrategy
@@ -372,34 +415,6 @@ class MeetingService {
     // 나머지 코드는 동일...
   }
 
-  // 트랜스크립트 처리 완료 후 호출
-  async processTranscript(meetingId, transcriptData, error = null) {
-    try {
-      const meeting = await Meeting.findById(meetingId);
-      if (!meeting) {
-        throw new Error('회의를 찾을 수 없습니다');
-      }
-
-      if (error) {
-        // 에러 발생 시
-        meeting.transcript.status = 'error';
-        meeting.transcript.error = error.message || '알 수 없는 오류';
-      } else {
-        // 성공 시
-        meeting.transcript.status = 'completed';
-        meeting.transcript.content = transcriptData;
-        
-      }
-
-      await meeting.save();
-      return meeting;
-
-    } catch (error) {
-      logger.error(`트랜스크립트 처리 오류: ${error.message}`);
-      throw error;
-    }
-  }
-
   // 요약 처리 완료 후 호출
   async processSummary(meetingId, summaryData, error = null) {
     try {
@@ -432,6 +447,8 @@ class MeetingService {
       throw error;
     }
   }
+
+  
 }
 
 module.exports = new MeetingService();

@@ -129,10 +129,24 @@ export class FileUploadManager {
                 _id: data.meetingId,
                 title: meetingTitle,
                 date: new Date().toISOString().split('T')[0],
-                status: data.status,
-                transcript: { status: 'pending' },
-                summary: { status: 'not_started' },
-                audioFileUrl: data.audioFileUrl
+                audioFile: {
+                    status: 'uploading',
+                    error: null
+                },
+                transcript: {
+                    status: 'pending',
+                    content: null,
+                    error: null
+                },
+                summary: {
+                    status: 'not_started',
+                    ko: null,
+                    en: null,
+                    zh: null,
+                    error: null
+                },
+                speakerNames: {},
+                summaryStrategy: summaryStrategy
             };
             
             const event = new CustomEvent('meetingSelected', {
@@ -192,10 +206,24 @@ export class FileUploadManager {
                 _id: data.meetingId,
                 title: meetingTitle,
                 date: new Date().toISOString().split('T')[0],
-                status: data.status,
-                transcript: { status: 'pending' },
-                summary: { status: 'not_started' },
-                audioFileUrl: data.audioFileUrl
+                audioFile: {
+                    status: 'uploading',
+                    error: null
+                },
+                transcript: {
+                    status: 'pending',
+                    content: null,
+                    error: null
+                },
+                summary: {
+                    status: 'not_started',
+                    ko: null,
+                    en: null,
+                    zh: null,
+                    error: null
+                },
+                speakerNames: {},
+                summaryStrategy: 'content'
             };
             
             const event = new CustomEvent('meetingSelected', {

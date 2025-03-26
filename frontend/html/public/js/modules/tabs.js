@@ -258,38 +258,58 @@ export class TabsManager {
             console.log('공유 버튼 클릭됨');
         });
 
-        if (meeting.transcript && meeting.transcript.status === 'completed' &&
-            meeting.summary && meeting.summary.status === 'completed') {
-            this.summaryManager.setupSummaryTabs(tabContent);
+        // 요약 섹션 이벤트 리스너 설정
+        const summarySection = tabContent.querySelector('.summary-section');
+        if (summarySection) {
+            // 요약 탭 설정
+            if (meeting.summary?.status === 'completed') {
+                this.summaryManager.setupSummaryTabs(tabContent);
+            }
+
+            // 화자 설정 버튼 이벤트 리스너
+            const setSpeakersButton = document.getElementById(`set-speakers-btn-${meetingId}`);
+            if (setSpeakersButton) {
+                setSpeakersButton.addEventListener('click', () => {
+                    this.summaryManager.setSpeakerNames(meeting, meetingId);
+                });
+            }
+
+            // 요약 시작 버튼 이벤트 리스너
+            const startSummaryButton = document.getElementById(`start-summary-btn-${meetingId}`);
+            if (startSummaryButton) {
+                startSummaryButton.addEventListener('click', () => {
+                    this.summaryManager.startSummary(meetingId, () => {
+                        this.pollingManager.startPolling(meetingId);
+                    });
+                });
+            }
+
+            // 다시 시도 버튼 이벤트 리스너
+            const retryButton = document.getElementById(`retry-summary-btn-${meetingId}`);
+            if (retryButton) {
+                retryButton.addEventListener('click', () => {
+                    this.summaryManager.startSummary(meetingId, () => {
+                        this.pollingManager.startPolling(meetingId);
+                    });
+                });
+            }
         }
 
-        if (meeting.transcript && meeting.transcript.status === 'completed') {
+        // 트랜스크립트 설정
+        if (meeting.transcript?.status === 'completed') {
             const transcriptData = meeting.transcript.data || meeting.transcript.content;
             if (transcriptData) {
                 this.transcriptManager.setupTranscript(tabContent, transcriptData, meeting, this.audioPlayer);
             }
         }
         
-        if (meeting.transcript && meeting.transcript.status === 'completed' && 
-            meeting.summary && meeting.summary.status === 'not_started') {
+        // 자동 요약 시작
+        if (meeting.transcript?.status === 'completed' && 
+            meeting.summary?.status === 'not_started') {
             setTimeout(() => {
-                // 자동으로 요약 시작
                 this.summaryManager.startSummary(meetingId, () => {
                     this.pollingManager.startPolling(meetingId);
                 });
-            }, 100);
-        }
-        
-        if (meeting.summary && meeting.summary.status === 'error') {
-            setTimeout(() => {
-                const retryBtn = document.getElementById(`retry-summary-btn-${meetingId}`);
-                if (retryBtn) {
-                    retryBtn.addEventListener('click', () => {
-                        this.summaryManager.startSummary(meetingId, () => {
-                            this.pollingManager.startPolling(meetingId);
-                        });
-                    });
-                }
             }, 100);
         }
     }

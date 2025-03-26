@@ -4,11 +4,36 @@ export class SummaryManager {
         this.pollingDelay = 5000;
     }
 
+    setPollingManager(pollingManager) {
+        this.pollingManager = pollingManager;
+    }
+
+    formatMarkdown(text) {
+        if (!text) return '';
+        
+        // 주요 섹션을 ## 로 구분
+        const sections = text.split('\n\n').map(section => {
+            // 각 섹션의 첫 줄을 제목으로 처리
+            const lines = section.split('\n');
+            if (lines.length > 0) {
+                lines[0] = `## ${lines[0]}`;
+            }
+            return lines.join('\n');
+        });
+        
+        // 전체 텍스트를 마크다운 형식으로 조합
+        const markdown = sections.join('\n\n');
+        
+        // marked.js를 사용하여 HTML로 변환
+        return marked.parse(markdown);
+    }
+
     setupSummaryTabs(tabContent) {
         const summaryTabs = tabContent.querySelectorAll('.summary-tab-button');
         summaryTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const lang = tab.dataset.lang;
+                // 요약 탭 활성화
                 summaryTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 const contents = tabContent.querySelectorAll('.summary-content');
@@ -17,6 +42,23 @@ export class SummaryManager {
                 });
             });
         });
+    }
+
+    updateTranscriptContent(container, transcriptData) {
+        // 기존 내용 비우기
+        container.innerHTML = '';
+        
+        if (Array.isArray(transcriptData)) {
+            transcriptData.forEach(segment => {
+                const segmentDiv = document.createElement('div');
+                segmentDiv.className = 'transcript-segment';
+                segmentDiv.innerHTML = `
+                    <span class="speaker">${segment.speaker}:</span>
+                    <span class="text">${segment.text}</span>
+                `;
+                container.appendChild(segmentDiv);
+            });
+        }
     }
 
     populateSpeakerList(meeting, meetingId) {
@@ -153,6 +195,11 @@ export class SummaryManager {
                 <button class="retry-summary-btn" id="retry-summary-btn-${meeting._id || meeting.id}">다시 시도</button>
             `;
         } else if (meeting.summary?.status === 'completed') {
+            // content 전략일 경우 마크다운 형식으로 변환
+            const formatContent = (text, strategy) => {
+                return strategy === 'content' ? this.formatMarkdown(text) : text;
+            };
+
             return `
                 <h2>회의 요약</h2>
                 <div class="summary-tabs">
@@ -161,18 +208,22 @@ export class SummaryManager {
                     <button class="summary-tab-button" data-lang="zh">中文</button>
                 </div>
                 <div class="summary-contents">
-                    <div class="summary-content active" data-lang="ko">
-                        ${meeting.summary?.ko || '요약이 없습니다.'}
+                    <div class="summary-content active markdown-body" data-lang="ko">
+                        ${formatContent(meeting.summary?.ko || '요약이 없습니다.', meeting.summaryStrategy)}
                     </div>
-                    <div class="summary-content" data-lang="en">
-                        ${meeting.summary?.en || 'No summary available.'}
+                    <div class="summary-content markdown-body" data-lang="en">
+                        ${formatContent(meeting.summary?.en || 'No summary available.', meeting.summaryStrategy)}
                     </div>
-                    <div class="summary-content" data-lang="zh">
-                        ${meeting.summary?.zh || '暂无摘要。'}
+                    <div class="summary-content markdown-body" data-lang="zh">
+                        ${formatContent(meeting.summary?.zh || '暂无摘要。', meeting.summaryStrategy)}
                     </div>
                 </div>
             `;
         }
         return '';
+    }
+
+    setupEventListeners(meetingId, meeting) {
+        // 이벤트 리스너 설정은 TabsManager에서 처리
     }
 } 

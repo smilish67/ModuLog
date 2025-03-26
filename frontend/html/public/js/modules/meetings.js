@@ -1,3 +1,5 @@
+import { PollingManager } from './PollingManager.js';
+
 export class MeetingsManager {
     constructor(summaryManager) {
         this.meetingList = document.querySelector('.meeting-list');
@@ -211,10 +213,27 @@ export class MeetingsManager {
             .then(data => {
                 this.meetings = data.map(meeting => ({
                     id: meeting._id,
-                    date: new Date(meeting.createdAt).toISOString().split('T')[0],
+                    _id: meeting._id,
                     title: meeting.title,
-                    transcript: meeting.transcript,
-                    summary: meeting.summary
+                    date: meeting.date ? new Date(meeting.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    audioFile: meeting.audioFile || {
+                        status: 'uploading',
+                        error: null
+                    },
+                    transcript: meeting.transcript || {
+                        status: 'pending',
+                        content: null,
+                        error: null
+                    },
+                    summary: meeting.summary || {
+                        status: 'not_started',
+                        ko: null,
+                        en: null,
+                        zh: null,
+                        error: null
+                    },
+                    speakerNames: meeting.speakerNames || {},
+                    summaryStrategy: meeting.summaryStrategy || 'content'
                 }));
                 this.renderMeetings();
                 
@@ -272,8 +291,7 @@ export class MeetingsManager {
                     };
                     this.renderMeetings();
                 }
-            },
-            this.summaryManager
+            }
         );
 
         pollingManager.startPolling(meetingId);
