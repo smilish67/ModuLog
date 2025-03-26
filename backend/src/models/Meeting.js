@@ -20,36 +20,35 @@ const meetingSchema = new mongoose.Schema({
         },
         error: String
     },
-    status: {
-        type: String,
-        enum: ['processing', 'completed', 'error'],
-        default: 'processing'
-    },
     transcript: {
         status: {
             type: String,
             enum: ['pending', 'processing', 'completed', 'error'],
             default: 'pending'
         },
-        content: String,
+        content: mongoose.Schema.Types.Mixed,
         error: String
     },
     summary: {
         status: {
             type: String,
-            enum: ['pending', 'processing', 'completed', 'error'],
-            default: 'pending'
+            enum: ['not_started', 'pending', 'processing', 'completed', 'error'],
+            default: 'not_started'
         },
         ko: String,
         en: String,
         zh: String,
         error: String
     },
+    speakerNames: {
+        type: Object,
+        default: {}
+    },
     summaryStrategy: {
         type: String,
         enum: ['content', 'speaker'],
-        required: true
-    }
+        default: 'content'
+    },
 }, {
     timestamps: true
 });

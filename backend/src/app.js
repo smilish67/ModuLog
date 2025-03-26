@@ -11,8 +11,8 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors());
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ extended: true, limit: '500mb' }));
 
 // 오직 /api/audio/ 경로만 설정 (기존 /uploads/ 경로는 제거)
 app.use('/api/audio', express.static(path.join(__dirname, '../uploads'), {

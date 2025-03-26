@@ -76,9 +76,17 @@
 }
 
 .upload-container h2 {
-    color: #4c1d95;  /* 진한 보라색 텍스트 */
+    color: var(--base-color-dark);
     text-align: center;
     padding: 0 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.upload-container h2::after {
+    display: none;
 }
 
 /* 탭 컨테이너 스타일 */
@@ -137,9 +145,16 @@
 }
 
 .tab-title h2 {
-    color: #4c1d95;
-    font-size: 1.5em;
+    color: var(--base-color-dark);
+    font-size: 1.6rem;
     font-weight: 600;
+    margin-bottom: 5px;
+    position: relative;
+    padding-bottom: 0;
+}
+
+.tab-title h2::after {
+    display: none;
 }
 
 .tab-title .file-name {

@@ -5,6 +5,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const meetingController = require('../controllers/meeting-controller');
+const meetingRoutes = require('./meeting-routes');
 
 // multer 설정
 const storage = multer.diskStorage({
@@ -20,7 +21,7 @@ const upload = multer({
     storage: storage,
     fileFilter: function (req, file, cb) {
         // 허용할 파일 형식 설정
-        const allowedTypes = ['audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/webm'];
+        const allowedTypes = ['audio/wav'];
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
@@ -28,7 +29,7 @@ const upload = multer({
         }
     },
     limits: {
-        fileSize: 100 * 1024 * 1024 // 최대 100MB
+        fileSize: 500 * 1024 * 1024 // 최대 500MB
     }
 });
 
@@ -36,12 +37,13 @@ const upload = multer({
 router.get('/', (req, res) => {
     res.json({ message: 'Modu API 서버가 정상적으로 실행 중입니다.' });
 });
-
-// 회의 관련 라우트
-router.get('/meetings', meetingController.getMeetings);
-router.get('/meetings/:meetingId', meetingController.getMeeting);
 router.post('/upload', upload.single('file'), meetingController.uploadMeeting);
-router.put('/meetings/:meetingId/transcript', meetingController.updateTranscript);
-router.put('/meetings/:meetingId/summary', meetingController.updateSummary);
+
+
+// 회의 관련 라우트를 /meetings 경로에 마운트
+router.use('/meetings', meetingRoutes);
+
+// 기존 직접 정의된 회의 관련 라우트들은 제거
+// router.get('/meetings', meetingController.getMeetings); 등 제거
 
 module.exports = router;

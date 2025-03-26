@@ -1,14 +1,20 @@
 import { TabsManager } from './tabs.js';
 import { AudioPlayer } from './audioPlayer.js';
+import { ModalManager } from './ModalManager.js';
 
 export class FileUploadManager {
     constructor(tabsManager) {
         this.tabsManager = tabsManager;
+        this.modalManager = new ModalManager();
         this.dropZone = document.getElementById('dropZone');
         this.fileInput = document.getElementById('fileInput');
         this.uploadModal = document.getElementById('uploadModal');
+        this.youtubeModal = document.getElementById('youtubeModal');
         this.cancelUploadBtn = document.getElementById('cancelUpload');
         this.confirmUploadBtn = document.getElementById('confirmUpload');
+        this.youtubeUploadBtn = document.getElementById('youtubeUpload');
+        this.cancelYoutubeBtn = document.getElementById('cancelYoutube');
+        this.confirmYoutubeBtn = document.getElementById('confirmYoutube');
         this.supportedFormats = ['audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/webm'];
         this.selectedFile = null;
 
@@ -50,14 +56,34 @@ export class FileUploadManager {
         this.confirmUploadBtn.addEventListener('click', () => {
             this.uploadFile();
         });
+
+        this.youtubeUploadBtn.addEventListener('click', () => {
+            this.showYoutubeModal();
+        });
+
+        this.cancelYoutubeBtn.addEventListener('click', () => {
+            this.hideYoutubeModal();
+        });
+
+        this.confirmYoutubeBtn.addEventListener('click', () => {
+            this.uploadYoutubeVideo();
+        });
     }
 
     showModal() {
-        this.uploadModal.style.display = 'flex';
+        this.uploadModal.classList.add('show');
     }
 
     hideModal() {
-        this.uploadModal.style.display = 'none';
+        this.uploadModal.classList.remove('show');
+    }
+
+    showYoutubeModal() {
+        this.youtubeModal.classList.add('show');
+    }
+
+    hideYoutubeModal() {
+        this.youtubeModal.classList.remove('show');
     }
 
     handleFiles(files) {
@@ -67,7 +93,7 @@ export class FileUploadManager {
                 this.showModal();
                 break;
             } else {
-                alert('지원되는 오디오 파일 형식(WAV, MP3, OGG, WEBM)만 업로드할 수 있습니다.');
+                alert('지원되는 오디오 파일 형식(WAV)만 업로드할 수 있습니다.');
             }
         }
     }
@@ -80,6 +106,8 @@ export class FileUploadManager {
             alert('회의 제목을 입력해주세요.');
             return;
         }
+
+        this.modalManager.showLoadingOverlay('파일 업로드 중...');
 
         const formData = new FormData();
         formData.append('file', this.selectedFile);
@@ -98,57 +126,94 @@ export class FileUploadManager {
             // 업로드된 회의 데이터로 탭 생성
             const meetingData = {
                 id: data.meetingId,
+                _id: data.meetingId,
                 title: meetingTitle,
                 date: new Date().toISOString().split('T')[0],
                 status: data.status,
                 transcript: { status: 'pending' },
-                summary: { status: 'pending' },
-                audioFileUrl: data.audioFileUrl  // 오디오 파일 URL 추가
+                summary: { status: 'not_started' },
+                audioFileUrl: data.audioFileUrl
             };
             
-            // meetingSelected 이벤트 발생
             const event = new CustomEvent('meetingSelected', {
                 detail: meetingData
             });
             document.dispatchEvent(event);
             
-            // meetingUploaded 이벤트 발생 - 회의 목록을 새로고침하기 위함
             const uploadedEvent = new CustomEvent('meetingUploaded', {
                 detail: meetingData
             });
             document.dispatchEvent(uploadedEvent);
-
-            // 회의 상태 주기적으로 확인
-            this.checkMeetingStatus(data.meetingId);
         })
         .catch(error => {
             console.error('파일 업로드 오류:', error);
             alert('파일 업로드 중 오류가 발생했습니다.');
+        })
+        .finally(() => {
+            this.modalManager.hideLoadingOverlay();
         });
     }
 
-    checkMeetingStatus(meetingId) {
-        const checkStatus = () => {
-            fetch(`/api/meetings/${meetingId}`)
-                .then(response => response.json())
-                .then(meeting => {
-                    if (meeting.status === 'completed' || meeting.status === 'error') {
-                        // 처리 완료 또는 에러 발생 시 이벤트 발생
-                        const event = new CustomEvent('meetingStatusUpdated', {
-                            detail: meeting
-                        });
-                        document.dispatchEvent(event);
-                        return;
-                    }
-                    
-                    // 아직 처리 중이면 계속 확인
-                    setTimeout(checkStatus, 5000); // 5초마다 확인
-                })
-                .catch(error => {
-                    console.error('상태 확인 오류:', error);
-                });
-        };
+    uploadYoutubeVideo() {
+        const youtubeUrl = document.getElementById('youtubeUrl').value;
+        const meetingTitle = document.getElementById('youtubeMeetingTitle').value;
+        const summaryStrategy = document.querySelector('input[name="youtubeSummaryStrategy"]:checked').value;
 
-        checkStatus();
+        if (!youtubeUrl.trim()) {
+            alert('유튜브 URL을 입력해주세요.');
+            return;
+        }
+
+        if (!meetingTitle.trim()) {
+            alert('회의 제목을 입력해주세요.');
+            return;
+        }
+
+        this.modalManager.showLoadingOverlay('유튜브 영상 처리 중...');
+
+        fetch('/api/upload/youtube', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                youtubeUrl,
+                meetingTitle,
+                summaryStrategy
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('서버 응답:', data);
+            this.hideYoutubeModal();
+            
+            const meetingData = {
+                id: data.meetingId,
+                _id: data.meetingId,
+                title: meetingTitle,
+                date: new Date().toISOString().split('T')[0],
+                status: data.status,
+                transcript: { status: 'pending' },
+                summary: { status: 'not_started' },
+                audioFileUrl: data.audioFileUrl
+            };
+            
+            const event = new CustomEvent('meetingSelected', {
+                detail: meetingData
+            });
+            document.dispatchEvent(event);
+            
+            const uploadedEvent = new CustomEvent('meetingUploaded', {
+                detail: meetingData
+            });
+            document.dispatchEvent(uploadedEvent);
+        })
+        .catch(error => {
+            console.error('유튜브 영상 처리 오류:', error);
+            alert('유튜브 영상 처리 중 오류가 발생했습니다.');
+        })
+        .finally(() => {
+            this.modalManager.hideLoadingOverlay();
+        });
     }
 } 

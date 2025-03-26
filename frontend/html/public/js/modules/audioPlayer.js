@@ -6,6 +6,10 @@ export class AudioPlayer {
         this.currentTimeEl = container.querySelector('.current-time') || container.querySelector('#current-time');
         this.durationEl = container.querySelector('.duration') || container.querySelector('#duration');
         
+        // 콜백 함수 초기화
+        this.onReady = null;
+        this.onError = null;
+        
         this.initializePlayer();
     }
 
@@ -53,6 +57,11 @@ export class AudioPlayer {
             if (this.durationEl) {
                 this.durationEl.textContent = this.formatTime(this.wavesurfer.getDuration());
             }
+            
+            // 준비 완료 콜백 호출
+            if (typeof this.onReady === 'function') {
+                this.onReady();
+            }
         });
 
         this.wavesurfer.on('audioprocess', () => {
@@ -63,6 +72,11 @@ export class AudioPlayer {
         
         this.wavesurfer.on('error', error => {
             console.error('오디오 로드 오류:', error);
+            
+            // 오류 발생 콜백 호출
+            if (typeof this.onError === 'function') {
+                this.onError(error);
+            }
         });
     }
 

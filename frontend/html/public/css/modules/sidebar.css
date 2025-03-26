@@ -50,6 +50,12 @@
     letter-spacing: -0.3px;
     cursor: pointer;
     transition: color 0.2s ease;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.sidebar-header h2::after {
+    display: none;
 }
 
 .sidebar-header h2:hover {

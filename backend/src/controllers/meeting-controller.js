@@ -1,5 +1,7 @@
 const Meeting = require('../models/Meeting');
 const meetingService = require('../services/meeting-service');
+const fs = require('fs');
+const path = require('path');
 // 필요한 다른 모듈들
 
 /**
@@ -32,9 +34,8 @@ class MeetingController {
           status: 'uploading'
         },
         summaryStrategy,
-        status: 'processing',
         transcript: { status: 'pending' },
-        summary: { status: 'pending' }
+        summary: { status: 'not_started' }
       });
 
       await meeting.save();
@@ -52,9 +53,10 @@ class MeetingController {
       res.json({
         message: '파일이 성공적으로 업로드되었습니다.',
         meetingId: meeting._id,
-        status: meeting.status,
         audioFile: meeting.audioFile,
-        audioFileUrl: audioFileUrl
+        audioFileUrl: audioFileUrl,
+        transcript: meeting.transcript,
+        summary: meeting.summary
       });
     } catch (error) {
       console.error('업로드 에러:', error);
@@ -69,34 +71,6 @@ class MeetingController {
       res.status(500).json({ 
         error: '파일 업로드 중 오류가 발생했습니다.',
         details: error.message
-      });
-    }
-  }
-
-  /**
-   * 회의 처리 함수 - 오디오 파일에서 텍스트 추출 및 요약 생성
-   */
-  async processMeeting(meetingId) {
-    try {
-      // 회의 데이터 가져오기
-      const meeting = await Meeting.findById(meetingId);
-      if (!meeting) {
-        throw new Error('회의를 찾을 수 없습니다.');
-      }
-
-      // 1. 음성 파일 STT 처리
-      await this.processTranscription(meeting);
-      
-      // 2. 요약 생성
-      await this.generateSummary(meeting);
-      
-    } catch (error) {
-      console.error('회의 처리 중 오류 발생:', error);
-      // 오류 상태 업데이트
-      await Meeting.findByIdAndUpdate(meetingId, {
-        status: 'error',
-        'transcript.status': 'error',
-        'transcript.error': error.message
       });
     }
   }
@@ -138,35 +112,72 @@ class MeetingController {
   }
 
   /**
+   * 화자 이름 설정
+   */
+  async setSpeakerNames(req, res) {
+    try {
+      const { speakerNames } = req.body;
+      
+      if (!speakerNames || typeof speakerNames !== 'object') {
+        return res.status(400).json({ error: '올바른 화자 정보가 필요합니다.' });
+      }
+      
+      const meetingId = req.params.meetingId;
+      const updatedMeeting = await meetingService.setSpeakerNames(meetingId, speakerNames);
+      
+      res.json({
+        message: '화자 이름이 성공적으로 설정되었습니다.',
+        meeting: updatedMeeting
+      });
+    } catch (error) {
+      console.error('화자 이름 설정 에러:', error);
+      res.status(error.message === '회의를 찾을 수 없습니다.' ? 404 : 500).json({ 
+        error: error.message === '회의를 찾을 수 없습니다.' 
+          ? error.message 
+          : '화자 이름 설정 중 오류가 발생했습니다.'
+      });
+    }
+  }
+  
+  /**
+   * 요약 생성 시작
+   */
+  async initiateSummary(req, res) {
+    try {
+      const meetingId = req.params.meetingId;
+      const updatedMeeting = await meetingService.initiateSummary(meetingId);
+      
+      res.json({
+        message: '요약 생성이 시작되었습니다.',
+        meeting: updatedMeeting
+      });
+    } catch (error) {
+      console.error('요약 시작 에러:', error);
+      res.status(error.message === '회의를 찾을 수 없습니다.' ? 404 : 500).json({ 
+        error: error.message === '회의를 찾을 수 없습니다.' || error.message === '회의 녹취 변환이 완료되지 않았습니다.'
+          ? error.message 
+          : '요약 생성 시작 중 오류가 발생했습니다.'
+      });
+    }
+  }
+
+  /**
    * STT 상태 업데이트
    */
   async updateTranscript(req, res) {
     try {
       const { status, content, error } = req.body;
-      const meeting = await Meeting.findById(req.params.meetingId);
+      const data = { status, content, error };
       
-      if (!meeting) {
-        return res.status(404).json({ error: '회의를 찾을 수 없습니다.' });
-      }
-
-      meeting.transcript = {
-        status,
-        content,
-        error
-      };
-
-      // 모든 처리가 완료되었는지 확인
-      if (status === 'completed' && meeting.summary.status === 'completed') {
-        meeting.status = 'completed';
-      } else if (status === 'error' || meeting.summary.status === 'error') {
-        meeting.status = 'error';
-      }
-
-      await meeting.save();
-      res.json(meeting);
+      const updatedMeeting = await meetingService.updateTranscript(req.params.meetingId, data);
+      res.json(updatedMeeting);
     } catch (error) {
       console.error('STT 상태 업데이트 에러:', error);
-      res.status(500).json({ error: '상태 업데이트 중 오류가 발생했습니다.' });
+      res.status(error.message === '회의를 찾을 수 없습니다.' ? 404 : 500).json({ 
+        error: error.message === '회의를 찾을 수 없습니다.' 
+          ? error.message 
+          : '상태 업데이트 중 오류가 발생했습니다.'
+      });
     }
   }
 
@@ -176,37 +187,57 @@ class MeetingController {
   async updateSummary(req, res) {
     try {
       const { status, ko, en, zh, error } = req.body;
-      const meeting = await Meeting.findById(req.params.meetingId);
+      const data = { status, ko, en, zh, error };
       
-      if (!meeting) {
-        return res.status(404).json({ error: '회의를 찾을 수 없습니다.' });
-      }
-
-      meeting.summary = {
-        status,
-        ko,
-        en,
-        zh,
-        error
-      };
-
-      // 모든 처리가 완료되었는지 확인
-      if (status === 'completed' && meeting.transcript.status === 'completed') {
-        meeting.status = 'completed';
-      } else if (status === 'error' || meeting.transcript.status === 'error') {
-        meeting.status = 'error';
-      }
-
-      await meeting.save();
-      res.json(meeting);
+      const updatedMeeting = await meetingService.updateSummary(req.params.meetingId, data);
+      res.json(updatedMeeting);
     } catch (error) {
       console.error('요약 상태 업데이트 에러:', error);
-      res.status(500).json({ error: '상태 업데이트 중 오류가 발생했습니다.' });
+      res.status(error.message === '회의를 찾을 수 없습니다.' ? 404 : 500).json({ 
+        error: error.message === '회의를 찾을 수 없습니다.' 
+          ? error.message 
+          : '상태 업데이트 중 오류가 발생했습니다.'
+      });
     }
   }
 
+  /**
+   * 회의 삭제
+   */
+  async deleteMeeting(req, res) {
+    try {
+      const meetingId = req.params.meetingId;
+      
+      // 회의 찾기
+      const meeting = await Meeting.findById(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ error: '회의를 찾을 수 없습니다.' });
+      }
+      
+      // 오디오 파일 삭제
+      if (meeting.audioFile && meeting.audioFile.path) {
+        try {
+          fs.unlinkSync(meeting.audioFile.path);
+          console.log(`오디오 파일 삭제됨: ${meeting.audioFile.path}`);
+        } catch (fileError) {
+          console.error('오디오 파일 삭제 중 오류:', fileError);
+          // 파일 삭제 실패는 전체 삭제 작업을 중단하지 않음
+        }
+      }
+      
+      // 회의 문서 삭제
+      await Meeting.findByIdAndDelete(meetingId);
+      
+      res.json({ 
+        message: '회의가 성공적으로 삭제되었습니다.',
+        deletedMeetingId: meetingId
+      });
+    } catch (error) {
+      console.error('회의 삭제 에러:', error);
+      res.status(500).json({ error: '회의 삭제 중 오류가 발생했습니다.' });
+    }
+  }
   // 나머지 컨트롤러 메서드들...
   // 다른 라우터 핸들러들도 여기에 추가
 }
-
 module.exports = new MeetingController(); 

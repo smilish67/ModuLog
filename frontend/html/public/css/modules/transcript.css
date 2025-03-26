@@ -4,6 +4,26 @@
     flex-direction: column;
     gap: 20px;
     padding: 20px;
+    max-height: 800px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 스크롤바 스타일 커스터마이징 */
+.transcript-container::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+}
+
+.transcript-container::-webkit-scrollbar-thumb {
+    background-color: rgba(var(--base-color-rgb), 0.2);
+    border-radius: 4px;
+}
+
+.transcript-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(var(--base-color-rgb), 0.4);
 }
 
 .transcript-message {
@@ -14,10 +34,25 @@
     transition: all 0.3s ease;
     padding: 10px;
     border-radius: 8px;
+    border-left: 3px solid transparent;
 }
 
 .transcript-message:hover {
     background: var(--base-color-shadow-light);
+}
+
+/* 현재 재생 중인 트랜스크립트 하이라이트 */
+.transcript-message.active {
+    background-color: rgba(var(--base-color-rgb), 0.1);
+    border-left: 3px solid var(--base-color);
+    box-shadow: 0 3px 12px rgba(var(--base-color-rgb), 0.15);
+    transform: translateX(5px);
+}
+
+/* 가장 가까운 트랜스크립트 약한 하이라이트 */
+.transcript-message.nearest {
+    background-color: rgba(var(--base-color-rgb), 0.05);
+    border-left: 3px solid rgba(var(--base-color-rgb), 0.3);
 }
 
 .speaker {
@@ -35,6 +70,18 @@
     position: relative;
     max-width: 80%;
     line-height: 1.6;
+    transition: all 0.3s ease;
+}
+
+/* 액티브 상태일 때 메시지 버블 스타일 변경 */
+.transcript-message.active .message-bubble {
+    background: var(--base-color-light);
+    color: var(--text-on-primary-light);
+    box-shadow: 0 4px 12px rgba(var(--base-color-rgb), 0.2);
+}
+
+.transcript-message.active .speaker {
+    color: var(--base-color-dark);
 }
 
 .message-bubble::before {
@@ -46,12 +93,24 @@
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
     border-right: 8px solid white;
+    transition: all 0.3s ease;
+}
+
+/* 액티브 상태일 때 말풍선 꼬리 색상 변경 */
+.transcript-message.active .message-bubble::before {
+    border-right-color: var(--base-color-light);
 }
 
 .timestamp {
     font-size: 0.8em;
     color: var(--text-color-lighter);
     margin-left: 4px;
+    transition: all 0.3s ease;
+}
+
+.transcript-message.active .timestamp {
+    color: var(--base-color);
+    font-weight: 600;
 }
 
 /* 전문 섹션 스타일 */
@@ -60,6 +119,23 @@
     background: var(--base-color-lighter);
     border-radius: 10px;
     width: 100%;
+}
+
+.full-text-section h2 {
+    text-align: left;
+    position: relative;
+    margin-bottom: 1.5rem;
+    color: var(--base-color-dark);
+}
+
+.full-text-section h2::after {
+    left: 0;
+    transform: translateX(0);
+    width: 40px;
+}
+
+.full-text-section h2:hover::after {
+    width: 60px;
 }
 
 .full-text-content {
@@ -81,6 +157,23 @@
     background: var(--base-color-lighter);
     border-radius: 10px;
     width: 100%;
+}
+
+.summary-section h2 {
+    text-align: left;
+    position: relative;
+    margin-bottom: 1.5rem;
+    color: var(--base-color-dark);
+}
+
+.summary-section h2::after {
+    left: 0;
+    transform: translateX(0);
+    width: 40px;
+}
+
+.summary-section h2:hover::after {
+    width: 60px;
 }
 
 .summary-tabs {

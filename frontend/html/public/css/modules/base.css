@@ -6,6 +6,11 @@
     --base-color-dark: #6B3ACC;
     --base-color-darker: #5728A3;
     
+    /* RGB 값 (rgba 사용을 위한 변수) */
+    --base-color-rgb: 138, 79, 255;
+    --base-color-light-rgb: 184, 148, 255;
+    --base-color-dark-rgb: 107, 58, 204;
+    
     /* 그라데이션 & 그림자 */
     --base-color-gradient: linear-gradient(135deg, var(--base-color) 0%, var(--base-color-dark) 100%);
     --base-color-shadow: rgba(138, 79, 255, 0.15);
@@ -17,6 +22,7 @@
     --text-color-light: #6E6D7A;
     --text-color-lighter: #9795A4;
     --text-on-primary: #FFFFFF;
+    --text-on-primary-light: #333333;
 
     /* 사이드바 컬러 */
     --sidebar-bg: #ede6f7;
@@ -49,4 +55,31 @@ body {
 
 .active {
     display: block;
+}
+
+/* 제목 스타일 */
+.main-content h2 {
+    color: var(--base-color-dark);
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    position: relative;
+    letter-spacing: -0.5px;
+    padding-bottom: 0.6rem;
+}
+
+.main-content h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--base-color-gradient);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.main-content h2:hover::after {
+    width: 60px;
 } 

@@ -25,14 +25,18 @@ services:
   modu-mongodb:
     image: mongo:latest
     container_name: modu-mongodb
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./backend/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb_tmp:/tmp
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=adminpassword
     networks:
       - modu-network
+
 
   # modu-admin:
   #   build:
@@ -68,3 +72,9 @@ networks:
 
 volumes:
   mongodb_data:
+  mongodb_tmp:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  stt_data:
