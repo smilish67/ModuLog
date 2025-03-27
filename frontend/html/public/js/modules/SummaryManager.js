@@ -41,6 +41,16 @@ export class SummaryManager {
                 contents.forEach(content => {
                     content.classList.toggle('active', content.dataset.lang === lang);
                 });
+                
+                // TTS 오디오 플레이어 업데이트
+                const ttsPlayer = tabContent.querySelector('.tts-audio-player');
+                if (ttsPlayer) {
+                    ttsPlayer.src = `/api/audio/${tabContent.dataset.meetingId}_tts_${lang}.wav`;
+                    ttsPlayer.load();
+                    ttsPlayer.play().catch(error => {
+                        console.error('TTS 재생 오류:', error);
+                    });
+                }
             });
         });
     }
@@ -209,10 +219,17 @@ export class SummaryManager {
 
             return `
                 <h2>회의 요약</h2>
-                <div class="summary-tabs">
+                <div class="summary-tabs" data-meeting-id="${meeting._id || meeting.id}">
                     <button class="summary-tab-button active" data-lang="ko">한국어</button>
                     <button class="summary-tab-button" data-lang="en">English</button>
                     <button class="summary-tab-button" data-lang="zh">中文</button>
+                </div>
+                <div class="tts-player-container">
+                    <h3>요약 음성</h3>
+                    <audio controls class="tts-audio-player">
+                        <source src="/api/audio/${meeting._id}_tts_ko.wav" type="audio/wav">
+                        브라우저가 오디오 플레이어를 지원하지 않습니다.
+                    </audio>
                 </div>
                 <div class="summary-contents">
                     <div class="summary-content active markdown-body" data-lang="ko">

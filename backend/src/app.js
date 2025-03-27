@@ -24,6 +24,13 @@ app.use('/api/audio', express.static(path.join(__dirname, '../uploads'), {
   }
 }));
 
+app.use('/TTS', express.static(path.join(__dirname, '../TTS'), {
+  setHeaders: function (res, path, stat) {
+    if (path.endsWith('.wav')) res.set('Content-Type', 'audio/wav');
+    else if (path.endsWith('.mp3')) res.set('Content-Type', 'audio/mpeg');
+  }
+}));
+
 // MongoDB 연결
 console.log('MongoDB 연결 시도:', process.env.MONGODB_URI);
 mongoose.connect(process.env.MONGODB_URI)
@@ -43,6 +50,6 @@ app.use('/api', require('./routes'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
-}); 
+});
 
 module.exports = app;

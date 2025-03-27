@@ -223,7 +223,7 @@ export class FileUploadManager {
                     error: null
                 },
                 speakerNames: {},
-                summaryStrategy: 'content'
+                summaryStrategy: summaryStrategy
             };
             
             const event = new CustomEvent('meetingSelected', {

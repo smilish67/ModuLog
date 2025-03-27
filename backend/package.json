@@ -9,6 +9,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "gradio-client": "^1.0.0",
+    "@langchain/community": "^0.3.37",
+    "@langchain/core": "^0.3.43",
+    "@langchain/openai": "^0.5.0",
     "apt-get": "^0.1.0",
     "axios": "^1.8.4",
     "bcryptjs": "^2.4.3",
@@ -16,15 +20,17 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
+    "faiss-node": "^0.5.1",
     "form-data": "^4.0.2",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
-    "langchain": "^0.1.37",
+    "langchain": "^0.3.19",
     "mongoose": "^8.1.1",
     "multer": "^1.4.5-lts.2",
     "openai": "^4.89.1",
     "path": "^0.12.7",
-    "update": "^0.7.4",
+    "pdfkit": "^0.16.0",
+    "update": "^0.4.2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

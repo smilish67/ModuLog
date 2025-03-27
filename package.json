@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@langchain/core": "^0.3.43",
+    "@langchain/openai": "^0.5.0"
+  },
+  "devDependencies": {
+    "@gradio/client": "^1.14.0",
+    "gradio-client": "^1.0.0"
+  }
+}

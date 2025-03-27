@@ -1,5 +1,6 @@
 const Meeting = require('../models/Meeting');
 const meetingService = require('../services/meeting-service');
+const ragService = require('../services/ragService');
 const fs = require('fs');
 const path = require('path');
 // 필요한 다른 모듈들
@@ -50,6 +51,10 @@ class MeetingController {
       // 오디오 파일 URL 생성
       const audioFileUrl = `/uploads/${req.file.filename}?t=${Date.now()}`;
       
+      // 트랜스크립션 처리 시작
+      const transcript = await meetingService.processAudio(meeting._id, req.file.path);
+      
+
       res.json({
         message: '파일이 성공적으로 업로드되었습니다.',
         meetingId: meeting._id,
@@ -227,6 +232,9 @@ class MeetingController {
       
       // 회의 문서 삭제
       await Meeting.findByIdAndDelete(meetingId);
+      
+      // 벡터 스토어 삭제
+      await ragService.deleteVectorStore(meetingId);
       
       res.json({ 
         message: '회의가 성공적으로 삭제되었습니다.',

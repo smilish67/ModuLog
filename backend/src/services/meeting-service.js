@@ -6,6 +6,7 @@ const axios = require('axios');
 // STT, 요약 등에 필요한 다른 모듈들 import
 const { execSync } = require("child_process");
 const { v4: uuidv4 } = require("uuid");
+const ragService = require('./ragService');
 
 /**
  * 회의 처리를 위한 비즈니스 로직 서비스
@@ -49,11 +50,11 @@ class MeetingService {
       await meeting.save();
 
       // Docker 환경에서 호스트 머신의 8000 포트로 접근
-      const diarizationUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://host.docker.internal:8000/diarization/'  // Docker 환경에서 호스트 머신 접근
-        : 'http://localhost:8000/diarization/';  // 로컬 개발 환경
+      // const diarizationUrl = process.env.NODE_ENV === 'development' 
+      //   ? 'http://host.docker.internal:8000/diarization/'  // Docker 환경에서 호스트 머신 접근
+      //   : 'http://localhost:8000/diarization/';  // 로컬 개발 환경
       
-      // const diarizationUrl = 'http://121.140.74.6:8000/diarization/';
+      const diarizationUrl = 'http://121.140.74.6:8000/diarization/';
 
       console.log(`Diarization 요청 전송: ${diarizationUrl}`);
       console.log('오디오 파일 경로:', meeting.audioFile.path);
@@ -82,6 +83,10 @@ class MeetingService {
       // 처리 결과 업데이트
       meeting.transcript.status = 'completed';
       meeting.transcript.content = response.data;
+
+      // 트랜스크립션이 완료되면 벡터 스토어 생성
+      // await ragService.createVectorStore(meeting._id, meeting.transcript.content);
+
 
       // segments가 있는 경우 추가 처리
       const segments = response.data.segments || [];
@@ -307,6 +312,11 @@ class MeetingService {
         chunks: processedTranscript,
         strategy: summaryStrategy
       });
+
+      // TTS 요약 읽기
+      
+      
+      
       
       // 처리 결과 업데이트
       meeting.summary.status = 'completed';

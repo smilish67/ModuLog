@@ -1,6 +1,8 @@
 export class TranscriptManager {
     constructor() {
         this.messageElements = [];
+        this.isUserScrolling = false;
+        this.scrollTimeout = null;
     }
 
     setupTranscript(tabContent, transcriptData, meeting, audioPlayer) {
@@ -84,6 +86,10 @@ export class TranscriptManager {
         if (audioPlayer && audioPlayer.wavesurfer) {
             this.setupAudioEvents(audioPlayer);
         }
+
+        // 스크롤 이벤트 리스너 추가
+        transcriptContainer.addEventListener('wheel', () => this.handleUserScroll(transcriptContainer));
+        transcriptContainer.addEventListener('touchmove', () => this.handleUserScroll(transcriptContainer));
     }
 
     setupAudioEvents(audioPlayer) {
@@ -106,43 +112,52 @@ export class TranscriptManager {
         // 이전 active 메시지의 active 클래스 제거
         this.messageElements.forEach(el => el.classList.remove('active'));
         
-        // currentTime보다 start가 큰 첫 번째 메시지 찾기
-        const nextMessage = this.messageElements.find(el => {
-            const start = parseFloat(el.dataset.start);
-            return start > currentTime;
-        });
-        
-        if (nextMessage) {
-            // 이전 메시지가 있다면 그것을 active로 설정
-            const prevMessage = nextMessage.previousElementSibling;
-            if (prevMessage) {
-                prevMessage.classList.add('active');
-                
-                // 스크롤 위치 조정
-                const container = prevMessage.closest('.transcript-container');
-                if (container) {
-                    const elTop = prevMessage.offsetTop;
-                    const containerHeight = container.clientHeight;
-                    const elHeight = prevMessage.clientHeight;
-                    
-                    container.scrollTop = elTop - (containerHeight / 2) + (elHeight / 2);
-                }
-            }
-        } else {
-            // 마지막 메시지가 active
-            const lastMessage = this.messageElements[this.messageElements.length - 1];
-            lastMessage.classList.add('active');
-            
-            // 스크롤 위치 조정
-            const container = lastMessage.closest('.transcript-container');
-            if (container) {
-                const elTop = lastMessage.offsetTop;
-                const containerHeight = container.clientHeight;
-                const elHeight = lastMessage.clientHeight;
-                
-                container.scrollTop = elTop - (containerHeight / 2) + (elHeight / 2);
+        // 현재 시간에 맞는 메시지 찾기
+        let activeMessage = null;
+        for (let i = 0; i < this.messageElements.length; i++) {
+            const start = parseFloat(this.messageElements[i].dataset.start);
+            if (start > currentTime) {
+                activeMessage = i > 0 ? this.messageElements[i - 1] : this.messageElements[0];
+                break;
             }
         }
+        
+        // 마지막 메시지가 active인 경우
+        if (!activeMessage) {
+            activeMessage = this.messageElements[this.messageElements.length - 1];
+        }
+        
+        if (activeMessage) {
+            activeMessage.classList.add('active');
+            this.scrollToMessage(activeMessage);
+        }
+    }
+
+    handleUserScroll(container) {
+        this.isUserScrolling = true;
+        
+        // 이전 타이머가 있다면 제거
+        if (this.scrollTimeout) {
+            clearTimeout(this.scrollTimeout);
+        }
+        
+        // 2초 후에 자동 스크롤 다시 활성화
+        this.scrollTimeout = setTimeout(() => {
+            this.isUserScrolling = false;
+        }, 2000);
+    }
+
+    scrollToMessage(messageElement) {
+        if (this.isUserScrolling) return;
+        
+        const container = messageElement.closest('.transcript-container');
+        if (!container) return;
+        
+        const elTop = messageElement.offsetTop;
+        const containerHeight = container.clientHeight;
+        const elHeight = messageElement.clientHeight;
+        
+        container.scrollTop = elTop - (containerHeight / 2) + (elHeight / 2);
     }
 
     formatTime(seconds) {
