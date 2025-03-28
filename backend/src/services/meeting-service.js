@@ -50,11 +50,7 @@ class MeetingService {
       await meeting.save();
 
       // Docker 환경에서 호스트 머신의 8000 포트로 접근
-      // const diarizationUrl = process.env.NODE_ENV === 'development' 
-      //   ? 'http://host.docker.internal:8000/diarization/'  // Docker 환경에서 호스트 머신 접근
-      //   : 'http://localhost:8000/diarization/';  // 로컬 개발 환경
-      
-      const diarizationUrl = 'http://121.140.74.6:8000/diarization/';
+      const diarizationUrl ='http://121.140.74.6:8000/diarization/'  // 프로덕션 환경
 
       console.log(`Diarization 요청 전송: ${diarizationUrl}`);
       console.log('오디오 파일 경로:', meeting.audioFile.path);
@@ -314,9 +310,63 @@ class MeetingService {
       });
 
       // TTS 요약 읽기
-      
-      
-      
+      // 오디오 파일도 보내기
+      const ttsUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://host.docker.internal:3001/tts'  // Docker 환경에서 호스트 머신 접근
+        : process.env.NODE_ENV === 'production'
+          ? 'http://121.140.74.6:3001/tts'  // 프로덕션 환경
+          : 'http://localhost:3001/tts';  // 로컬 개발 환경
+
+      console.log(`TTS 요청 전송: ${ttsUrl}`);
+      try {
+        const ttsResponse = await axios.post(ttsUrl, {
+          text: response.data.translations,
+        });
+        console.log('TTS 응답:', ttsResponse.data);
+        // download audio file and save
+        const audioFileName_ko = `${meeting._id}_tts_ko.wav`;
+        const audioFileName_en = `${meeting._id}_tts_en.wav`;
+        const audioFileName_zh = `${meeting._id}_tts_zh.wav`;
+        const uploadsDir = path.join(__dirname, '../../', 'uploads');
+        
+        // uploads 디렉토리가 없으면 생성
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        
+        const audioFilePath_ko = path.join(uploadsDir, audioFileName_ko);
+        const audioFilePath_en = path.join(uploadsDir, audioFileName_en);
+        const audioFilePath_zh = path.join(uploadsDir, audioFileName_zh);
+
+        // URL에서 오디오 파일 다운로드
+        const downloadAudio = async (url, filePath) => {
+          try {
+            // localhost URL을 Docker 호스트 URL로 변환
+            const hostUrl = process.env.NODE_ENV === 'development' 
+              ? url.replace('localhost', 'host.docker.internal')
+              : url;
+
+            const response = await axios({
+              method: 'GET',
+              url: hostUrl,
+              responseType: 'arraybuffer'
+            });
+            fs.writeFileSync(filePath, response.data);
+          } catch (error) {
+            console.error('오디오 파일 다운로드 실패:', error.message);
+            throw error;
+          }
+        };
+
+        await Promise.all([
+          downloadAudio(ttsResponse.data['Korean'].data[0].url, audioFilePath_ko),
+          downloadAudio(ttsResponse.data['English'].data[0].url, audioFilePath_en),
+          downloadAudio(ttsResponse.data['Chinese'].data[0].url, audioFilePath_zh)
+        ]);
+      } catch (error) {
+        console.error('TTS 요청 실패:', error.message);
+        throw error;
+      }
       
       // 처리 결과 업데이트
       meeting.summary.status = 'completed';

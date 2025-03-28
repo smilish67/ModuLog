@@ -51,8 +51,8 @@ class MeetingController {
       // 오디오 파일 URL 생성
       const audioFileUrl = `/uploads/${req.file.filename}?t=${Date.now()}`;
       
-      // 트랜스크립션 처리 시작
-      const transcript = await meetingService.processAudio(meeting._id, req.file.path);
+      // // 트랜스크립션 처리 시작
+      // const transcript = await meetingService.processAudio(meeting._id, req.file.path);
       
 
       res.json({
