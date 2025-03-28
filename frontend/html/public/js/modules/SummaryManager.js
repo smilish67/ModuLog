@@ -29,28 +29,35 @@ export class SummaryManager {
         return marked.parse(markdown);
     }
 
-    setupSummaryTabs(tabContent) {
-        const summaryTabs = tabContent.querySelectorAll('.summary-tab-button');
-        summaryTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const lang = tab.dataset.lang;
-                // 요약 탭 활성화
-                summaryTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const contents = tabContent.querySelectorAll('.summary-content');
-                contents.forEach(content => {
-                    content.classList.toggle('active', content.dataset.lang === lang);
-                });
-                
-                // TTS 오디오 플레이어 업데이트
-                const ttsPlayer = tabContent.querySelector('.tts-audio-player');
-                if (ttsPlayer) {
-                    ttsPlayer.src = `/api/audio/${tabContent.dataset.meetingId}_tts_${lang}.wav`;
-                    ttsPlayer.load();
-                    ttsPlayer.play().catch(error => {
-                        console.error('TTS 재생 오류:', error);
+    setupSummaryTabs() {
+        const summaryTabs = document.querySelectorAll('.summary-tabs');
+        summaryTabs.forEach(tabGroup => {
+            const meetingId = tabGroup.dataset.meetingId;
+            const buttons = tabGroup.querySelectorAll('.summary-tab-button');
+            const contents = tabGroup.parentElement.querySelectorAll('.summary-content');
+            const audioPlayer = tabGroup.parentElement.querySelector('.tts-audio-player');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 활성 탭 버튼 변경
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // 활성 컨텐츠 변경
+                    const lang = button.dataset.lang;
+                    contents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.dataset.lang === lang) {
+                            content.classList.add('active');
+                        }
                     });
-                }
+
+                    // 오디오 소스 변경
+                    if (audioPlayer) {
+                        audioPlayer.src = `/api/audio/${meetingId}_tts_${lang}.wav`;
+                        audioPlayer.load(); // 새로운 소스 로드
+                    }
+                });
             });
         });
     }
@@ -170,8 +177,9 @@ export class SummaryManager {
             meetingId: meeting._id || meeting.id
         });
 
+        let html = '';
         if (meeting.transcript?.status !== 'completed') {
-            return `
+            html = `
                 <h2>회의 요약</h2>
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
@@ -179,7 +187,7 @@ export class SummaryManager {
                 </div>
             `;
         } else if (meeting.summary?.status === 'not_started') {
-            return `
+            html = `
                 <h2>회의 요약</h2>
                 <div class="summary-prepare">
                     <p>트랜스크립션이 완료되었습니다. 화자 이름을 설정하고 요약을 시작하세요.</p>
@@ -196,7 +204,7 @@ export class SummaryManager {
                 </div>
             `;
         } else if (meeting.summary?.status === 'pending' || meeting.summary?.status === 'processing') {
-            return `
+            html = `
                 <h2>회의 요약</h2>
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
@@ -204,7 +212,7 @@ export class SummaryManager {
                 </div>
             `;
         } else if (meeting.summary?.status === 'error') {
-            return `
+            html = `
                 <h2>회의 요약</h2>
                 <div class="error-message">
                     요약 생성 중 오류가 발생했습니다: ${meeting.summary?.error || '알 수 없는 오류'}
@@ -217,7 +225,7 @@ export class SummaryManager {
                 return strategy === 'content' ? this.formatMarkdown(text) : text;
             };
 
-            return `
+            html = `
                 <h2>회의 요약</h2>
                 <div class="summary-tabs" data-meeting-id="${meeting._id || meeting.id}">
                     <button class="summary-tab-button active" data-lang="ko">한국어</button>
@@ -244,6 +252,14 @@ export class SummaryManager {
                 </div>
             `;
         }
-        return '';
+
+        // HTML이 생성된 후 탭 설정
+        if (html) {
+            setTimeout(() => {
+                this.setupSummaryTabs();
+            }, 0);
+        }
+
+        return html;
     }
 } 

@@ -10,11 +10,11 @@ export class ChatManager {
         this.isChatOpen = false;
         this.currentMeetingId = null;
 
-        this.suggestedPhrases = [
-            "주요 논의 사항 알려줘",
-            "PDF로 정리해줘",
-            "보고서 작성해줘",
-        ];
+        // this.suggestedPhrases = [
+        //     "주요 논의 사항 알려줘",
+        //     "PDF로 정리해줘",
+        //     "보고서 작성해줘",
+        // ];
 
         this.initializeEventListeners();
     }
