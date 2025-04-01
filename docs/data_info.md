@@ -12,7 +12,7 @@
   - https://groups.inf.ed.ac.uk/ami/icsi/download/
 
 ## 중국어 회의 데이터셋
-- AliMeeting : 중국어 회의, 다중 화자 포함, 화자 분리 안되어있는 것 같음
+- AliMeeting : 중국어 회의, 다중 화자 포함, 화자 분리 O
   - https://www.openslr.org/119/
 - DatatangBeijing/2657Hours-MandarinMobileTelephonyConversationalSpeechCollectionData
   - https://www.modelscope.cn/datasets/DatatangBeijing/2657Hours-MandarinMobileTelephonyConversationalSpeechCollectionData/summary

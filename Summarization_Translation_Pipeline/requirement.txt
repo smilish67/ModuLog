@@ -1,0 +1,13 @@
+mysql-connector-python
+transformers
+torch
+flask
+
+pymupdf
+pypdf
+openai
+langchain
+langchain_openai
+langchain-community
+faiss-cpu
+# pip install -U langchain langchain_openai langchain_community
